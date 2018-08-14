@@ -9,15 +9,25 @@ import java.util.List;
 
 public class Country {
     String name;
-    List<String> language;
+    List<String> languages;
     List<String> currency;
 
-    public Country(JSONObject json) throws JSONException{
-        this.name = json.getString("name");
-        JSONArray langs = json.getJSONArray("languages");
-        language = new ArrayList<String>();
+    public String getName() {
+        return name;
+    }
 
+    public List<String> getLanguages() {
+        return languages;
+    }
 
+    public List<String> getCurrency() {
+        return currency;
+    }
+
+    public Country(String name, List<String> languages, List<String> currency) throws JSONException{
+        this.name = name;
+        this.languages = languages;
+        this.currency = currency;
     }
 }
 
