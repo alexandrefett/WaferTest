@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">WaferTest</string>
+    <string name="error">Alguma coisa não funcionou corretamente. Tente novamente.</string>
+    <string name="loading">Carregando...</string>
 </resources>
