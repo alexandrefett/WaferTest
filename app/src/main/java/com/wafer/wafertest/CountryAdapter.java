@@ -16,6 +16,12 @@ public class CountryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     private List<Country> items;
     int lastInsertedIndex; // so we can add some more items for testing purposes
+    int snapPosition;
+
+    public void snapPosition(int position) {
+        snapPosition = position;
+        notifyDataSetChanged();
+    }
 
     /** References to the views for each data item **/
     public class CountryViewHolder extends RecyclerView.ViewHolder {
@@ -23,6 +29,7 @@ public class CountryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         public TextView nameView;
         public TextView languageView;
         public TextView currencyView;
+        public ImageView deleteView;
 
         public CountryViewHolder(View v) {
             super(v);
@@ -30,6 +37,7 @@ public class CountryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             nameView = (TextView) v.findViewById(R.id.nameView);
             languageView = (TextView) v.findViewById(R.id.languageView);
             currencyView = (TextView) v.findViewById(R.id.currencyView);
+            deleteView = (ImageView) v.findViewById(R.id.deleteView);
         }
     }
 
@@ -37,7 +45,7 @@ public class CountryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public CountryAdapter(List<Country> items) {
         this.items = items;
         lastInsertedIndex = items.size()-1;
-
+        snapPosition = -1;
     }
 
     @Override
@@ -65,6 +73,11 @@ public class CountryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         vh.nameView.setText(item.getName());
         vh.languageView.setText(item.getLanguage());
         vh.currencyView.setText(item.getCurrency());
+        if(snapPosition == position) {
+            vh.deleteView.setVisibility(View.VISIBLE);
+        } else {
+            vh.deleteView.setVisibility(View.GONE);
+        }
         //vh.data = item;
     }
 

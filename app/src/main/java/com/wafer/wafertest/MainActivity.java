@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -42,10 +43,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         mRecyclerView = (RecyclerView)findViewById(R.id.recyclerView);
     }
-
 
     private void setUpRecyclerView(List<Country> array) {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -119,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                         hideDialog();
                         setUpRecyclerView(countryArray);
-                        System.out.println("-----------");
                     }
                 },
                 new Response.ErrorListener(){
@@ -128,7 +126,6 @@ public class MainActivity extends AppCompatActivity {
                         // Do something when error occurred
                         hideDialog();
                         Toast.makeText(getBaseContext(), R.string.error, Toast.LENGTH_LONG).show();
-                        System.out.println("-----------"+error.getMessage());
                     }
                 }
 
@@ -145,31 +142,33 @@ public class MainActivity extends AppCompatActivity {
             Drawable xMark;
             int xMarkMargin;
             boolean initiated;
+            int anchorPosition;
 
             private void init() {
-                background = new ColorDrawable(Color.RED);
+                background = new ColorDrawable(getResources().getColor(R.color.purple));
                 xMark = ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_action_name);
                 xMark.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
                 xMarkMargin = (int) MainActivity.this.getResources().getDimension(R.dimen.ic_clear_margin);
                 initiated = true;
+                anchorPosition = -1;
             }
 
             // not important, we don't want drag & drop
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                System.out.println("----------- onMove");
-
                 return false;
+            }
+
+            @Override
+            public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState){
+
             }
 
             @Override
             public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
                 int position = viewHolder.getAdapterPosition();
                 CountryAdapter countryAdapter = (CountryAdapter)recyclerView.getAdapter();
-//                if (countryAdapter.isUndoOn() && countryAdapter.isPendingRemoval(position)) {
-//                    return 0;
-//                }
-                System.out.println("----------- onSwipedDirs");
+
                 return super.getSwipeDirs(recyclerView, viewHolder);
             }
 
@@ -177,14 +176,7 @@ public class MainActivity extends AppCompatActivity {
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 int swipedPosition = viewHolder.getAdapterPosition();
                 CountryAdapter adapter = (CountryAdapter)mRecyclerView.getAdapter();
-//                boolean undoOn = adapter.isUndoOn();
-//                if (undoOn) {
-//                    adapter.pendingRemoval(swipedPosition);
-//                } else {
-                    adapter.remove(swipedPosition);
-  //              }
-                System.out.println("----------- onSwiped dir:"+swipeDir);
-
+                adapter.remove(swipedPosition);
             }
 
             @Override
@@ -201,8 +193,7 @@ public class MainActivity extends AppCompatActivity {
                     init();
                 }
 
-                // draw red background
-//                background.setBounds(itemView.getRight() + (int) dX, itemView.getTop(), itemView.getRight(), itemView.getBottom());
+                // draw purple background
                 background.setBounds(0, itemView.getTop(), itemView.getLeft()+(int)dX, itemView.getBottom());
                 background.draw(c);
 
@@ -211,32 +202,26 @@ public class MainActivity extends AppCompatActivity {
                 int intrinsicWidth = xMark.getIntrinsicWidth() + xMarkMargin;
                 int intrinsicHeight = xMark.getIntrinsicWidth();
 
-//                int xMarkLeft = itemView.getRight() - xMarkMargin - intrinsicWidth;
-                int xMarkLeft = xMarkMargin;
-//                int xMarkRight = itemView.getRight() - xMarkMargin;
-                int xMarkTop = itemView.getTop() + (itemHeight - intrinsicHeight)/2;
+                int xMarkTop = 1+itemView.getTop() + (itemHeight - intrinsicHeight)/2;
                 int xMarkBottom = xMarkTop + intrinsicHeight;
-//                xMark.setBounds(xMarkLeft, xMarkTop, intrinsicWidth, xMarkBottom);
                 xMark.setBounds(xMarkMargin, xMarkTop, intrinsicWidth, xMarkBottom);
                 xMark.draw(c);
 
-                System.out.println("----------- odrawChild ");
-                System.out.println("----------- actionState:"+actionState);
-                System.out.println("----------- active:"+isCurrentlyActive);
                 if(!isCurrentlyActive){
-                    setMargins(itemView, intrinsicWidth);
+                    anchorPosition = viewHolder.getAdapterPosition();
+                    anchorTo((CountryAdapter)recyclerView.getAdapter(), anchorPosition);
+                } else {
+                    if(anchorPosition != -1) {
+                        anchorTo((CountryAdapter)recyclerView.getAdapter(), anchorPosition);
+                        anchorPosition = -1;
+                    }
                 }
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
 
-            public void setMargins (View v, int l) {
-                if (v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-                    ViewGroup.MarginLayoutParams p = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-                    p.setMargins(l, p.topMargin, p.rightMargin, p.bottomMargin);
-                    v.requestLayout();
-                }
+            public synchronized void anchorTo(CountryAdapter adapter, int position){
+                adapter.snapPosition(position);
             }
-
         };
         ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         mItemTouchHelper.attachToRecyclerView(mRecyclerView);
@@ -254,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
             boolean initiated;
 
             private void init() {
-                background = new ColorDrawable(Color.RED);
+                background = new ColorDrawable(getResources().getColor(R.color.purple));
                 initiated = true;
             }
 
